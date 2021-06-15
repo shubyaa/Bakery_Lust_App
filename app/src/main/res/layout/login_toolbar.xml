@@ -14,7 +14,6 @@
         android:fontFamily="sans-serif"
         android:textAllCaps="false"
         android:padding="10dp"
-        android:background=""
         android:textColor="@color/text_dark"
         android:textAlignment="center"/>
 
