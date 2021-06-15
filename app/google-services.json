@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "53964204393",
+    "project_id": "bakery-lust",
+    "storage_bucket": "bakery-lust.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:53964204393:android:e590a35f23e349fa99f5f8",
+        "android_client_info": {
+          "package_name": "com.example.bakery_lust"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "53964204393-4t4120ge2qlp3omm2q6pmsr2kda5o3ip.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAr_dpJUzcYPPWJbhYSnHfxmfOqLNhjvMQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "53964204393-4t4120ge2qlp3omm2q6pmsr2kda5o3ip.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
