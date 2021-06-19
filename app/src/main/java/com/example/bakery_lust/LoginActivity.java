@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.SimpleAdapter;
 import android.widget.Toast;
 
@@ -27,7 +28,8 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 
 public class LoginActivity extends AppCompatActivity {
-    Button login, signup, google, facebook;
+    Button login, signup, google;
+    EditText email, password;
     FirebaseAuth mAuth;
     private static final int RC_SIGN_IN = 100;
     GoogleSignInClient mGoogleSignInClient;
@@ -43,15 +45,23 @@ public class LoginActivity extends AppCompatActivity {
         login = findViewById(R.id.login);
         signup = findViewById(R.id.signup);
         google = findViewById(R.id.google);
-        facebook = findViewById(R.id.facebook);
+        email = findViewById(R.id.email);
+        password = findViewById(R.id.password);
 
         checkLogIn();
 
+        login.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                login();
+            }
+        });
         signup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent in = new Intent(getApplicationContext(), SignUpActivity.class);
                 startActivity(in);
+                LoginActivity.this.finish();
             }
         });
 
@@ -100,7 +110,7 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    private void firebaseAuthWithGoogle(GoogleSignInAccount account) {
+    public void firebaseAuthWithGoogle(GoogleSignInAccount account) {
         AuthCredential credential = GoogleAuthProvider.getCredential(account.getIdToken(), null);
         mAuth.signInWithCredential(credential)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
@@ -111,7 +121,6 @@ public class LoginActivity extends AppCompatActivity {
                             FirebaseUser user = mAuth.getCurrentUser();
                             Intent in = new Intent(getApplicationContext(), MainActivity.class);
                             startActivity(in);
-
                         }else {
                             Toast.makeText(LoginActivity.this, "Failed to SignIn", Toast.LENGTH_SHORT).show();
                             Log.i("error in task", task.toString());
@@ -119,6 +128,7 @@ public class LoginActivity extends AppCompatActivity {
 
                     }
                 });
+
     }
 
     private void checkLogIn(){
@@ -126,12 +136,16 @@ public class LoginActivity extends AppCompatActivity {
         if (user!=null){
             Intent in = new Intent(getApplicationContext(), MainActivity.class);
             startActivity(in);
+            finish();
         }
+    }
+
+    private void login(){
+
     }
 
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        this.finish();
     }
 }

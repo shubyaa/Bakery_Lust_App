@@ -124,13 +124,13 @@
         app:constraint_referenced_ids="forgot_password,password,email" />
 
     <Button
-        android:id="@+id/login"
+        android:id="@+id/register"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginVertical="13sp"
         android:background="@drawable/sign_up_button"
         android:fontFamily="sans-serif"
-        android:text="Sign Ip"
+        android:text="Sign In"
         android:textAllCaps="false"
         android:textSize="18sp"
         app:layout_constraintBottom_toTopOf="@+id/horizontal_line3"
@@ -144,7 +144,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:barrierDirection="bottom"
-        app:constraint_referenced_ids="login" />
+        app:constraint_referenced_ids="register" />
 
     <com.shaishavgandhi.loginbuttons.GoogleButton
         android:id="@+id/google"
@@ -163,7 +163,7 @@
         app:layout_constraintEnd_toStartOf="@id/vertical_border2"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toEndOf="@id/vertical_border1"
-        app:layout_constraintTop_toBottomOf="@+id/login"
+        app:layout_constraintTop_toBottomOf="@+id/register"
         app:roundedCorner="true" />
 
     <androidx.constraintlayout.widget.Guideline
