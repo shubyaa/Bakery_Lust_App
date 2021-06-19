@@ -76,15 +76,6 @@ public class SignUpActivity extends AppCompatActivity {
         startActivityForResult(signInIntent, RC_SIGN_IN);
     }
 
-    //To check whether the user previously logged in or not and if yes, auto log in the user and display home page
-    private void checkLogIn(){
-        FirebaseUser user = mAuth.getCurrentUser();
-        if (user!=null){
-            Intent in = new Intent(getApplicationContext(), MainActivity.class);
-            startActivity(in);
-        }
-    }
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -125,10 +116,11 @@ public class SignUpActivity extends AppCompatActivity {
                 });
     }
 
-    //TO DO tasks when the app is started.
+    //to redirect it to login page on back pressed.
     @Override
-    protected void onStart() {
-        super.onStart();
-        checkLogIn();
+    public void onBackPressed() {
+        this.finish();
+        Intent in = new Intent(this, LoginActivity.class);
+        startActivity(in);
     }
 }
