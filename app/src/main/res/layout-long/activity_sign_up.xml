@@ -159,28 +159,10 @@
         android:textAllCaps="false"
         android:textColor="@color/black"
         app:iconSize="20sp"
-        app:layout_constraintBottom_toTopOf="@+id/facebook"
+        app:layout_constraintBottom_toTopOf="@+id/horizontal_line4"
         app:layout_constraintEnd_toStartOf="@id/vertical_border2"
         app:layout_constraintStart_toEndOf="@id/vertical_border1"
         app:layout_constraintTop_toBottomOf="@+id/login"
-        app:roundedCorner="true" />
-
-    <com.shaishavgandhi.loginbuttons.FacebookButton
-        android:id="@+id/facebook"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginVertical="15sp"
-        android:background="@drawable/round_corner"
-        android:fontFamily="sans-serif"
-        android:text="Sign in with facebook"
-        android:textSize="18sp"
-        android:textAlignment="center"
-        android:textAllCaps="false"
-        app:iconSize="20sp"
-        app:layout_constraintBottom_toBottomOf="@+id/horizontal_line4"
-        app:layout_constraintEnd_toStartOf="@id/vertical_border2"
-        app:layout_constraintStart_toEndOf="@+id/vertical_border1"
-        app:layout_constraintTop_toBottomOf="@+id/google"
         app:roundedCorner="true" />
 
     <androidx.constraintlayout.widget.Guideline
@@ -188,9 +170,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent=".76" />
-
-
-
+        app:layout_constraintGuide_percent=".66" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

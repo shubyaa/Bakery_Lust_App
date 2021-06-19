@@ -109,7 +109,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:barrierDirection="bottom"
-        app:constraint_referenced_ids="forgot_password,password,email" />
+        app:constraint_referenced_ids="forgot_password,password,email"
+        tools:layout_editor_absoluteY="312dp" />
 
     <Button
         android:id="@+id/login"
@@ -131,45 +132,27 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:barrierDirection="bottom"
-        app:constraint_referenced_ids="login" />
+        app:constraint_referenced_ids="login"
+        tools:layout_editor_absoluteY="378dp" />
 
     <com.shaishavgandhi.loginbuttons.GoogleButton
         android:id="@+id/google"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginHorizontal="0sp"
-        android:layout_marginTop="80sp"
+        android:layout_marginTop="165sp"
         android:fontFamily="sans-serif"
         android:text="Log in with google"
-        android:textSize="18sp"
         android:textAlignment="center"
         android:textAllCaps="false"
         android:textColor="@color/black"
+        android:textSize="18sp"
         app:iconSize="20sp"
-        app:layout_constraintBottom_toTopOf="@+id/facebook"
+        app:layout_constraintBottom_toTopOf="@+id/horizontal_line4"
         app:layout_constraintEnd_toStartOf="@id/vertical_border2"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toEndOf="@id/vertical_border1"
         app:layout_constraintTop_toBottomOf="@+id/login"
-        app:roundedCorner="true" />
-
-    <com.shaishavgandhi.loginbuttons.FacebookButton
-        android:id="@+id/facebook"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginVertical="15sp"
-        android:background="@drawable/round_corner"
-        android:fontFamily="sans-serif"
-        android:text="Log in with facebook"
-        android:textSize="18sp"
-        android:textAlignment="center"
-        android:textAllCaps="false"
-        app:iconSize="20sp"
-        app:layout_constraintBottom_toBottomOf="@+id/horizontal_line4"
-        app:layout_constraintEnd_toStartOf="@id/vertical_border2"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/vertical_border1"
-        app:layout_constraintTop_toBottomOf="@+id/google"
         app:roundedCorner="true" />
 
     <androidx.constraintlayout.widget.Guideline
@@ -183,7 +166,6 @@
         android:id="@+id/text2"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_below="@+id/facebook"
         android:layout_marginTop="100sp"
         android:fontFamily="sans-serif-light"
         android:text="Don't have an account yet?"
@@ -209,7 +191,7 @@
         android:fontFamily="sans-serif"
         android:text="Sign Up"
         android:textSize="18sp"
-        android:layout_marginVertical="20sp"
+        android:layout_marginVertical="30sp"
         android:textAllCaps="false"
         app:layout_constraintTop_toBottomOf="@+id/text2"
         app:layout_constraintBottom_toTopOf="@id/horizontal_line5"
