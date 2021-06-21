@@ -59,12 +59,13 @@ public class MainActivity extends AppCompatActivity {
 
     //get details of the user.
     private void getDetails(){
-        GoogleSignInAccount signInAccount = GoogleSignIn.getLastSignedInAccount(this);
-        if (signInAccount != null){
-            name.setText(signInAccount.getDisplayName());
-            email.setText(signInAccount.getEmail());
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user!=null){
+            name.setText(user.getDisplayName());
+            email.setText(user.getEmail());
         }
     }
+
 
     //ALertDialog box for logout
     private void logoutDialog(Activity activity){

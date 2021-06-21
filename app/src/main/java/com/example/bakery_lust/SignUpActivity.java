@@ -4,7 +4,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -15,7 +14,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.example.bakery_lust.User.User;
+import com.example.bakery_lust.User.EmailUser;
+import com.example.bakery_lust.User.GoogleUser;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -27,21 +27,28 @@ import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.auth.GoogleAuthCredential;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 public class SignUpActivity extends AppCompatActivity {
 
     EditText name, email, password;
     Button register, google;
-    public String Id = "";
+    private String Id = "";
     private FirebaseAuth mAuth;
     private GoogleSignInClient mGoogleSignInClient;
     private final static int RC_SIGN_IN = 10;
     private FirebaseDatabase database;
-    private DatabaseReference reference;
+    private DatabaseReference googleUsersReference;
+    private DatabaseReference emailUsersReference;
+
+    GoogleUser googleUser;
+    EmailUser emailUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,7 +60,8 @@ public class SignUpActivity extends AppCompatActivity {
         //Initializing Firebase Auth
         mAuth = FirebaseAuth.getInstance();
         database = FirebaseDatabase.getInstance();
-        reference = FirebaseDatabase.getInstance().getReference("users");
+        googleUsersReference = database.getReference("Google");
+        emailUsersReference = database.getReference("Email");
 
         //adding id to the code from UI
         name = findViewById(R.id.name);
@@ -129,7 +137,14 @@ public class SignUpActivity extends AppCompatActivity {
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()){
                             //SignIn Success
-                            FirebaseUser user = mAuth.getCurrentUser();
+                            FirebaseUser user1 = mAuth.getCurrentUser();
+
+                            //Get values like name and email from google and add it in your database.
+                            String name = user1.getDisplayName();
+                            String email = user1.getEmail();
+                            googleUser = new GoogleUser(name, email); // Making a new object.
+
+                            updateGoogleDatabase(user1);
                             Intent in = new Intent(getApplicationContext(), MainActivity.class);
                             startActivity(in);
                             SignUpActivity.this.finish();
@@ -173,8 +188,10 @@ public class SignUpActivity extends AppCompatActivity {
             email.setError("Enter a password greater than 6 characters");
         }
 
-        //Makes an object of a new user
+        String encrypt_password = MD5hash(password_of_user);
 
+        //Makes an object of a new user
+        emailUser = new EmailUser(name_of_user, email_of_user, encrypt_password);
 
         mAuth.createUserWithEmailAndPassword(email_of_user, password_of_user).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
             @Override
@@ -182,6 +199,7 @@ public class SignUpActivity extends AppCompatActivity {
                 if (task.isSuccessful()){
                     Toast.makeText(SignUpActivity.this, "Successfully registered", Toast.LENGTH_SHORT).show();
                     FirebaseUser user = mAuth.getCurrentUser();
+                    updateEmailDatabase(user);
                     Intent in = new Intent(SignUpActivity.this, MainActivity.class);
                     startActivity(in);
                     finish();
@@ -190,11 +208,52 @@ public class SignUpActivity extends AppCompatActivity {
                 }
             }
         });
+
+
+    }
+
+    //update Google Database
+    private void updateGoogleDatabase(FirebaseUser firebaseUser){
+        Id = firebaseUser.getUid();
+        googleUsersReference.child(Id).setValue(googleUser);
+    }
+
+    //update Email Database
+    private void updateEmailDatabase(FirebaseUser firebaseUser){
+        Id = firebaseUser.getUid();
+        emailUsersReference.child(Id).setValue(emailUser);
     }
 
     //Email Validation
     private boolean isValidEmail(CharSequence email){
         return (!TextUtils.isEmpty(email) && Patterns.EMAIL_ADDRESS.matcher(email).matches());
+    }
+
+    //provide password encryption
+    private static String MD5hash(String password){
+        try {
+            // Static getInstance method is called with hashing MD5
+            MessageDigest md = MessageDigest.getInstance("MD5");
+
+            // digest() method is called to calculate message digest
+            //  of an password digest() return array of byte
+            byte[] messageDigest = md.digest(password.getBytes());
+
+            // Convert byte array into signum representation
+            BigInteger no = new BigInteger(1, messageDigest);
+
+            // Convert message digest into hex value
+            StringBuilder hashtext = new StringBuilder(no.toString(16));
+            while (hashtext.length() < 32) {
+                hashtext.insert(0, "0");
+            }
+            return hashtext.toString();
+        }
+
+        // For specifying wrong message digest algorithms
+        catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     //to redirect it to login page on back pressed.
