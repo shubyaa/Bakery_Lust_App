@@ -3,6 +3,7 @@ package com.example.bakery_lust;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.app.AlertDialog;
 import android.content.Intent;
@@ -26,6 +27,12 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 
 import java.math.BigInteger;
 import java.security.MessageDigest;
@@ -34,7 +41,12 @@ import java.security.NoSuchAlgorithmException;
 public class LoginActivity extends AppCompatActivity {
     Button login, signup, google;
     EditText email, password;
-    FirebaseAuth mAuth;
+    private String nameDb;
+    private String emailDb;
+    private FirebaseAuth mAuth;
+    private FirebaseDatabase database;
+    private DatabaseReference googleUsersReference;
+    private DatabaseReference emailUsersReference;
     private static final int RC_SIGN_IN = 100;
     GoogleSignInClient mGoogleSignInClient;
     @Override
@@ -45,6 +57,9 @@ public class LoginActivity extends AppCompatActivity {
         onRequest();
 
         mAuth = FirebaseAuth.getInstance();
+        database = FirebaseDatabase.getInstance();
+        googleUsersReference = database.getReference("Google");
+        emailUsersReference = database.getReference("Email");
 
         login = findViewById(R.id.login);
         signup = findViewById(R.id.signup);
@@ -57,9 +72,10 @@ public class LoginActivity extends AppCompatActivity {
         login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                login();
+                loginViaEmail();
             }
         });
+
         signup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -95,6 +111,7 @@ public class LoginActivity extends AppCompatActivity {
     private void signInViaGoogle() {
         Intent signInIntent = mGoogleSignInClient.getSignInIntent();
         startActivityForResult(signInIntent, RC_SIGN_IN);
+
     }
 
     @Override
@@ -106,32 +123,38 @@ public class LoginActivity extends AppCompatActivity {
             try {
                 //Google sign in was successful and then authenticate with firebase
                 GoogleSignInAccount account = task.getResult(ApiException.class);
-                firebaseAuthWithGoogle(account);
+
+                //Check for user in our database without password because it is authenticated by google.
+                Query checkUser = googleUsersReference.orderByChild("email").equalTo(account.getEmail());
+
+                checkUser.addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (snapshot.exists()) {
+                             nameDb = snapshot.child(uniqueID(account.getEmail())).child("name").getValue(String.class);
+                             emailDb = snapshot.child(uniqueID(account.getEmail())).child("email").getValue(String.class);
+
+                            Log.i("name", nameDb);
+                            Log.i("email", emailDb);
+
+                            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                            intent.putExtra("name", nameDb);
+                            intent.putExtra("email", emailDb);
+                            startActivity(intent);
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
+
                 Log.i("IDToken", account.getIdToken());
             } catch (ApiException e) {
                 Log.i("Error in loading task", e.getMessage());
             }
         }
-    }
-
-    public void firebaseAuthWithGoogle(GoogleSignInAccount account) {
-        AuthCredential credential = GoogleAuthProvider.getCredential(account.getIdToken(), null);
-        mAuth.signInWithCredential(credential)
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()){
-                            //SignIn Success
-                            FirebaseUser user = mAuth.getCurrentUser();
-                            Intent in = new Intent(getApplicationContext(), MainActivity.class);
-                            startActivity(in);
-                        }else {
-                            Toast.makeText(LoginActivity.this, "Failed to SignIn", Toast.LENGTH_SHORT).show();
-                            Log.i("error in task", task.toString());
-                        }
-
-                    }
-                });
     }
 
     private void checkLogIn(){
@@ -143,9 +166,52 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    private void login(){
 
+    //check for existence of a particualar user in our database.
+    private void loginViaEmail(){
+        Query checkUser = emailUsersReference.orderByChild("email").equalTo(email.getText().toString());
+
+        checkUser.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()){
+                    String passwordFromDb = snapshot.child(uniqueID(email.getText().toString())).child("password").getValue(String.class);
+
+                    if (passwordFromDb.equals(MD5hash(password.getText().toString()))){
+                         nameDb = snapshot.child(uniqueID(email.getText().toString())).child("name").getValue(String.class);
+                         emailDb = snapshot.child(uniqueID(email.getText().toString())).child("email").getValue(String.class);
+
+                        Log.i("name", nameDb);
+                        Log.i("email", emailDb);
+
+                        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                        intent.putExtra("name", nameDb);
+                        intent.putExtra("email", emailDb);
+                        startActivity(intent);
+                    }else {
+                        Toast.makeText(LoginActivity.this, "Wrong Password", Toast.LENGTH_SHORT).show();
+                    }
+                }else {
+                    Toast.makeText(LoginActivity.this, "Username dose'nt exist!", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
     }
+/*
+####################################################################################################
+ */
+    //create a unique email substring and use it as an ID for each user which will also be easy to access about a particular user.
+    private String uniqueID(String email){
+        return email.substring(0, email.lastIndexOf("@"));
+    }
+/*
+####################################################################################################
+ */
 
     //provide password encryption, do encryption to the password input and then compare it with database.
     private static String MD5hash(String password){

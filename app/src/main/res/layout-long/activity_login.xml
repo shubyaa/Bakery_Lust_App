@@ -73,7 +73,7 @@
         app:layout_constraintBottom_toTopOf="@+id/password"
         app:layout_constraintEnd_toStartOf="@+id/vertical_border2"
         app:layout_constraintStart_toEndOf="@+id/vertical_border1"
-        app:layout_constraintTop_toTopOf="@+id/horizontal_border1" />
+        app:layout_constraintTop_toBottomOf="@+id/horizontal_border1" />
 
     <EditText
         android:id="@+id/password"

@@ -46,6 +46,9 @@ public class SignUpActivity extends AppCompatActivity {
     private FirebaseDatabase database;
     private DatabaseReference googleUsersReference;
     private DatabaseReference emailUsersReference;
+    private String name_of_user;
+    private String email_of_user;
+    private String password_of_user;
 
     GoogleUser googleUser;
     EmailUser emailUser;
@@ -73,6 +76,20 @@ public class SignUpActivity extends AppCompatActivity {
         register.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                name_of_user = name.getText().toString();
+                email_of_user = email.getText().toString();
+                password_of_user = password.getText().toString();
+
+                if (!isValidEmail(email_of_user)){
+                    email.setError("Enter your email.");
+                }else if (TextUtils.isEmpty(name_of_user)){
+                    email.setError("Enter your name.");
+                }else if (TextUtils.isEmpty(password_of_user)){
+                    email.setError("Enter your password.");
+                }else if (password_of_user.length()<6){
+                    email.setError("Enter a password greater than 6 characters");
+                }
+
                 Register();
             }
         });
@@ -174,24 +191,14 @@ public class SignUpActivity extends AppCompatActivity {
 ********************************************************
  */
     private void Register(){
-        String name_of_user = name.getText().toString();
-        String email_of_user = email.getText().toString();
-        String password_of_user = password.getText().toString();
-
-        if (!isValidEmail(email_of_user)){
-            email.setError("Enter your email.");
-        }else if (TextUtils.isEmpty(name_of_user)){
-            email.setError("Enter your name.");
-        }else if (TextUtils.isEmpty(password_of_user)){
-            email.setError("Enter your password.");
-        }else if (password_of_user.length()<6){
-            email.setError("Enter a password greater than 6 characters");
-        }
 
         String encrypt_password = MD5hash(password_of_user);
 
         //Makes an object of a new user
         emailUser = new EmailUser(name_of_user, email_of_user, encrypt_password);
+
+        //Check for username existence
+
 
         mAuth.createUserWithEmailAndPassword(email_of_user, password_of_user).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
             @Override
@@ -211,18 +218,28 @@ public class SignUpActivity extends AppCompatActivity {
 
 
     }
+/*
+####################################################################################################
+ */
+    //create a unique email substring and use it as an ID for each user which will also be easy to access about a particular user.
+    private String uniqueID(String email){
+        return email.substring(0, email.lastIndexOf("@"));
+    }
 
     //update Google Database
     private void updateGoogleDatabase(FirebaseUser firebaseUser){
-        Id = firebaseUser.getUid();
+        Id = uniqueID(firebaseUser.getEmail());
         googleUsersReference.child(Id).setValue(googleUser);
     }
 
     //update Email Database
     private void updateEmailDatabase(FirebaseUser firebaseUser){
-        Id = firebaseUser.getUid();
+        Id = uniqueID(firebaseUser.getEmail());
         emailUsersReference.child(Id).setValue(emailUser);
     }
+/*
+####################################################################################################
+ */
 
     //Email Validation
     private boolean isValidEmail(CharSequence email){
