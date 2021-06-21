@@ -30,7 +30,8 @@ public class MainActivity extends AppCompatActivity {
 
     private FirebaseAuth mAuth;
     private FirebaseDatabase database;
-    private DatabaseReference reference;
+    private DatabaseReference googleUsersReference;
+    private DatabaseReference emailUsersReference;
 
 
     @Override
@@ -40,7 +41,9 @@ public class MainActivity extends AppCompatActivity {
 
         mAuth = FirebaseAuth.getInstance();
         database = FirebaseDatabase.getInstance();
-        reference = FirebaseDatabase.getInstance().getReference("users");
+        googleUsersReference = database.getReference("Google");
+        emailUsersReference = database.getReference("Email");
+
 
         //adding id to the code from UI
         name = findViewById(R.id.name);
@@ -59,11 +62,13 @@ public class MainActivity extends AppCompatActivity {
 
     //get details of the user.
     private void getDetails(){
-        FirebaseUser user = mAuth.getCurrentUser();
-        if (user!=null){
-            name.setText(user.getDisplayName());
-            email.setText(user.getEmail());
-        }
+        Intent intent = getIntent();
+        String name1 = intent.getStringExtra("name");
+        String email1 = intent.getStringExtra("email");
+
+        name.setText(name1);
+        email.setText(email1);
+
     }
 
 
