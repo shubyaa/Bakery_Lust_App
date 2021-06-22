@@ -22,6 +22,8 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
@@ -41,6 +43,7 @@ public class SignUpActivity extends AppCompatActivity {
     Button register, google;
     private String Id = "";
     private FirebaseAuth mAuth;
+    private FirebaseUser user;
     private GoogleSignInClient mGoogleSignInClient;
     private final static int RC_SIGN_IN = 10;
     private FirebaseDatabase database;
@@ -80,13 +83,13 @@ public class SignUpActivity extends AppCompatActivity {
                 email_of_user = email.getText().toString();
                 password_of_user = password.getText().toString();
 
-                if (!isValidEmail(email_of_user)){
+                if (!isValidEmail(email_of_user)) {
                     email.setError("Enter your email.");
-                }else if (TextUtils.isEmpty(name_of_user)){
+                } else if (TextUtils.isEmpty(name_of_user)) {
                     email.setError("Enter your name.");
-                }else if (TextUtils.isEmpty(password_of_user)){
+                } else if (TextUtils.isEmpty(password_of_user)) {
                     email.setError("Enter your password.");
-                }else if (password_of_user.length()<6){
+                } else if (password_of_user.length() < 6) {
                     email.setError("Enter a password greater than 6 characters");
                 }
 
@@ -101,15 +104,16 @@ public class SignUpActivity extends AppCompatActivity {
             }
         });
     }
-/*
-********************************************************
-********************************************************
-        HERE, REGISTRATION VIA GOOGLE STARTS
-********************************************************
-********************************************************
- */
+
+    /*
+    ********************************************************
+    ********************************************************
+            HERE, REGISTRATION VIA GOOGLE STARTS
+    ********************************************************
+    ********************************************************
+     */
     // Check requests to google client
-    private void onRequest(){
+    private void onRequest() {
         // Configure sign-in to request the user's ID, email address, and basic
         // profile. ID and basic profile are included in DEFAULT_SIGN_IN.
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -132,7 +136,7 @@ public class SignUpActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         //Result retured from launching GoogleSignInApi.getSignInIntent...
-        if (requestCode==RC_SIGN_IN){
+        if (requestCode == RC_SIGN_IN) {
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
             try {
                 //Google sign in was successful and then authenticate with firebase
@@ -152,20 +156,30 @@ public class SignUpActivity extends AppCompatActivity {
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()){
+                        if (task.isSuccessful()) {
                             //SignIn Success
-                            FirebaseUser user1 = mAuth.getCurrentUser();
+                            user = mAuth.getCurrentUser();
 
                             //Get values like name and email from google and add it in your database.
-                            String name = user1.getDisplayName();
-                            String email = user1.getEmail();
-                            googleUser = new GoogleUser(name, email); // Making a new object.
+                            String name = user.getDisplayName();
+                            String email = user.getEmail();
 
-                            updateGoogleDatabase(user1);
+                            if (!user.isEmailVerified()){
+                                googleUser = new GoogleUser(name, email, "NO"); // Making a new object
+                                updateGoogleDatabase(user);
+
+                                Intent intent = new Intent(getApplicationContext(), VerifyEmail.class);
+                                startActivity(intent);
+                            }else {
+                                googleUser = new GoogleUser(name, email, "YES"); // Making a new object
+                                updateGoogleDatabase(user);
+                            }
+
                             Intent in = new Intent(getApplicationContext(), MainActivity.class);
-                            startActivity(in);
-                            SignUpActivity.this.finish();
-                        }else {
+                            in.putExtra("name", name);
+                            in.putExtra("email", email);
+                            finish();
+                        } else {
                             Toast.makeText(SignUpActivity.this, "Failed to SignIn", Toast.LENGTH_SHORT).show();
                             Log.i("error in task", task.toString());
                         }
@@ -183,34 +197,42 @@ public class SignUpActivity extends AppCompatActivity {
  */
 
 
-/*
-********************************************************
-********************************************************
-        HERE, REGISTRATION VIA EMAIL/PASSWORD STARTS
-********************************************************
-********************************************************
- */
-    private void Register(){
+    /*
+    ********************************************************
+    ********************************************************
+            HERE, REGISTRATION VIA EMAIL/PASSWORD STARTS
+    ********************************************************
+    ********************************************************
+     */
+    private void Register() {
 
         String encrypt_password = MD5hash(password_of_user);
-
-        //Makes an object of a new user
-        emailUser = new EmailUser(name_of_user, email_of_user, encrypt_password);
-
-        //Check for username existence
-
 
         mAuth.createUserWithEmailAndPassword(email_of_user, password_of_user).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
-                if (task.isSuccessful()){
-                    Toast.makeText(SignUpActivity.this, "Successfully registered", Toast.LENGTH_SHORT).show();
-                    FirebaseUser user = mAuth.getCurrentUser();
-                    updateEmailDatabase(user);
+                if (task.isSuccessful()) {
+                    user = mAuth.getCurrentUser();
+
+                    if (!user.isEmailVerified()){
+                        sendEmail(user);
+                        emailUser = new EmailUser(name_of_user, email_of_user, encrypt_password, "NO");
+                        emailUsersReference.child(uniqueID(email_of_user)).setValue(emailUser);
+                        updateEmailDatabase(user);
+
+                        Intent intent = new Intent(getApplicationContext(), VerifyEmail.class);
+                        startActivity(intent);
+                    }else {
+                        emailUser = new EmailUser(name_of_user, email_of_user, encrypt_password, "YES");
+                        emailUsersReference.child(uniqueID(email_of_user)).setValue(emailUser);
+                        updateEmailDatabase(user);
+                    }
+
                     Intent in = new Intent(SignUpActivity.this, MainActivity.class);
-                    startActivity(in);
+                    in.putExtra("name", name_of_user);
+                    in.putExtra("email", email_of_user);
                     finish();
-                }else {
+                } else {
                     Toast.makeText(SignUpActivity.this, "Failed to register", Toast.LENGTH_SHORT).show();
                 }
             }
@@ -218,22 +240,23 @@ public class SignUpActivity extends AppCompatActivity {
 
 
     }
-/*
-####################################################################################################
- */
+
+    /*
+    ####################################################################################################
+     */
     //create a unique email substring and use it as an ID for each user which will also be easy to access about a particular user.
-    private String uniqueID(String email){
+    private String uniqueID(String email) {
         return email.substring(0, email.lastIndexOf("@"));
     }
 
     //update Google Database
-    private void updateGoogleDatabase(FirebaseUser firebaseUser){
+    private void updateGoogleDatabase(FirebaseUser firebaseUser) {
         Id = uniqueID(firebaseUser.getEmail());
         googleUsersReference.child(Id).setValue(googleUser);
     }
 
     //update Email Database
-    private void updateEmailDatabase(FirebaseUser firebaseUser){
+    private void updateEmailDatabase(FirebaseUser firebaseUser) {
         Id = uniqueID(firebaseUser.getEmail());
         emailUsersReference.child(Id).setValue(emailUser);
     }
@@ -242,12 +265,12 @@ public class SignUpActivity extends AppCompatActivity {
  */
 
     //Email Validation
-    private boolean isValidEmail(CharSequence email){
+    private boolean isValidEmail(CharSequence email) {
         return (!TextUtils.isEmpty(email) && Patterns.EMAIL_ADDRESS.matcher(email).matches());
     }
 
     //provide password encryption
-    private static String MD5hash(String password){
+    private static String MD5hash(String password) {
         try {
             // Static getInstance method is called with hashing MD5
             MessageDigest md = MessageDigest.getInstance("MD5");
@@ -271,6 +294,24 @@ public class SignUpActivity extends AppCompatActivity {
         catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    //send email verification
+    private void sendEmail(FirebaseUser user) {
+        //send email
+        user.sendEmailVerification().addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                Intent intent = new Intent(getApplicationContext(), VerifyEmail.class);
+                startActivity(intent);
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Toast.makeText(SignUpActivity.this, "Failed to send mail.", Toast.LENGTH_SHORT).show();
+                Log.i("Error to send mail", e.getMessage());
+            }
+        });
     }
 
     //to redirect it to login page on back pressed.

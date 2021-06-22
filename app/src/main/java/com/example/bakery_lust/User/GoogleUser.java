@@ -3,6 +3,7 @@ package com.example.bakery_lust.User;
 public class GoogleUser {
     private String name;
     private String email;
+    private String verification;
     private String phoneNO;
     private String location;
 
@@ -14,11 +15,25 @@ public class GoogleUser {
         this.email = email;
     }
 
+    public GoogleUser(String name, String email, String verification){
+        this.name = name;
+        this.email = email;
+        this.verification = verification;
+    }
+
     public GoogleUser(String name, String email, String phoneNO, String location) {
         this.name = name;
         this.email = email;
         this.phoneNO = phoneNO;
         this.location = location;
+    }
+
+    public String getVerification() {
+        return verification;
+    }
+
+    public void setVerification(String verification) {
+        this.verification = verification;
     }
 
     public String getName() {

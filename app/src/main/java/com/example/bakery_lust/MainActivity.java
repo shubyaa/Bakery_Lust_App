@@ -72,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    //ALertDialog box for logout
+    //AlertDialog box for logout
     private void logoutDialog(Activity activity){
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
         builder.setMessage("Are you sure?")
@@ -101,28 +101,5 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         getDetails();
-    }
-
-    @Override
-    public void onBackPressed() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder
-                .setMessage("Are you sure you want to exit?")
-                .setCancelable(false)
-                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                       MainActivity.this.finish();
-                    }
-                })
-                .setNegativeButton("No", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.cancel();
-                    }
-                });
-
-        AlertDialog dialog = builder.create();
-        dialog.show();
     }
 }

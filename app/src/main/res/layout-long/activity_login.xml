@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#ebe4d3"
+    android:background="@color/background"
     tools:context=".LoginActivity">
 
     <include
@@ -81,6 +81,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/email"
         android:autofillHints="password"
+        android:inputType="textPassword"
         android:hint="Password\n"
         android:padding="10sp"
         android:paddingTop="32dp"
