@@ -5,8 +5,11 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
+import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -18,7 +21,9 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -33,16 +38,22 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 public class LoginActivity extends AppCompatActivity {
-    Button login, signup, google;
-    EditText email, password;
+    private Button login, signup, google;
+    private EditText email, password;
+
+    private String emailFromHome = "";
+    private String status = "";
+    private String LOGIN = "LOGIN";
     private String nameDb;
     private String emailDb;
     private FirebaseAuth mAuth;
     private FirebaseDatabase database;
+    private FirebaseUser user;
     private DatabaseReference googleUsersReference;
     private DatabaseReference emailUsersReference;
     private static final int RC_SIGN_IN = 100;
     GoogleSignInClient mGoogleSignInClient;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,7 +61,11 @@ public class LoginActivity extends AppCompatActivity {
 
         onRequest();
 
+        Intent intent = getIntent();
+        emailFromHome = intent.getStringExtra("emailFromDatabase");
+
         mAuth = FirebaseAuth.getInstance();
+        user = mAuth.getCurrentUser();
         database = FirebaseDatabase.getInstance();
         googleUsersReference = database.getReference("Google");
         emailUsersReference = database.getReference("Email");
@@ -61,12 +76,18 @@ public class LoginActivity extends AppCompatActivity {
         email = findViewById(R.id.email);
         password = findViewById(R.id.password);
 
-        checkLogIn();
-
         login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                loginViaEmail();
+                if (isValidEmail(email.toString())) {
+                    email.setError("Enter your email.");
+                } else if (TextUtils.isEmpty(password.toString())) {
+                    email.setError("Enter your password.");
+                } else if (password.toString().length() < 6) {
+                    email.setError("Enter a password greater than 6 characters");
+                }else {
+                    loginViaEmail();
+                }
             }
         });
 
@@ -89,7 +110,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     //request to google
-    private void onRequest(){
+    private void onRequest() {
         // Configure sign-in to request the user's ID, email address, and basic
         // profile. ID and basic profile are included in DEFAULT_SIGN_IN.
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -112,7 +133,7 @@ public class LoginActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         //Result returned from launching GoogleSignInApi.getSignInIntent...
-        if (requestCode==RC_SIGN_IN){
+        if (requestCode == RC_SIGN_IN) {
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
             try {
                 //Google sign in was successful and then authenticate with firebase
@@ -121,17 +142,22 @@ public class LoginActivity extends AppCompatActivity {
                 //Check for user in our database without password because it is authenticated by google.
                 Query checkUser = googleUsersReference.orderByChild("email").equalTo(account.getEmail());
 
+                try {
+                    googleUsersReference.child(uniqueID(account.getEmail())).child("status").setValue(LOGIN);
+                } catch (Exception ignored) {
+                }
+
                 checkUser.addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         if (snapshot.exists()) {
-                             nameDb = snapshot.child(uniqueID(account.getEmail())).child("name").getValue(String.class);
-                             emailDb = snapshot.child(uniqueID(account.getEmail())).child("email").getValue(String.class);
+                            nameDb = snapshot.child(uniqueID(account.getEmail())).child("name").getValue(String.class);
+                            emailDb = snapshot.child(uniqueID(account.getEmail())).child("email").getValue(String.class);
 
-                            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                            intent.putExtra("name", nameDb);
-                            intent.putExtra("email", emailDb);
-                            startActivity(intent);
+                            SharedPreferences.Editor editor = getSharedPreferences("Details", MODE_PRIVATE).edit();
+                            editor.putString("name", nameDb);
+                            editor.putString("email", emailDb);
+                            editor.apply();
                             finish();
                         }
                     }
@@ -149,39 +175,40 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    private void checkLogIn(){
-        FirebaseUser user = mAuth.getCurrentUser();
-        if (user!=null){
-            Intent in = new Intent(getApplicationContext(), MainActivity.class);
-            startActivity(in);
-            finish();
-        }
-    }
 
-
-    //check for existence of a particualar user in our database.
-    private void loginViaEmail(){
+    //check for existence of a particular user in our database.
+    private void loginViaEmail() {
         Query checkUser = emailUsersReference.orderByChild("email").equalTo(email.getText().toString());
+
+        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
 
         checkUser.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.exists()){
+                if (snapshot.exists()) {
                     String passwordFromDb = snapshot.child(uniqueID(email.getText().toString())).child("password").getValue(String.class);
 
-                    if (passwordFromDb.equals(MD5hash(password.getText().toString()))){
-                         nameDb = snapshot.child(uniqueID(email.getText().toString())).child("name").getValue(String.class);
-                         emailDb = snapshot.child(uniqueID(email.getText().toString())).child("email").getValue(String.class);
+                    if (passwordFromDb.equals(MD5hash(password.getText().toString()))) {
+                        nameDb = snapshot.child(uniqueID(email.getText().toString())).child("name").getValue(String.class);
+                        emailDb = snapshot.child(uniqueID(email.getText().toString())).child("email").getValue(String.class);
 
-                        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                        intent.putExtra("name", nameDb);
-                        intent.putExtra("email", emailDb);
-                        startActivity(intent);
-                        finish();
-                    }else{
+                        SharedPreferences.Editor editor = getSharedPreferences("Details", MODE_PRIVATE).edit();
+                        editor.putString("name", nameDb);
+                        editor.putString("email", emailDb);
+                        editor.apply();
+                        mAuth.signInWithEmailAndPassword(email.toString(), password.toString()).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                            @Override
+                            public void onComplete(@NonNull Task<AuthResult> task) {
+                                Log.i("sucess", "Yes");
+                                startActivity(intent);
+                                finish();
+                            }
+                        });
+
+                    } else {
                         Toast.makeText(LoginActivity.this, "Wrong Password", Toast.LENGTH_SHORT).show();
                     }
-                }else {
+                } else {
                     Toast.makeText(LoginActivity.this, "Username dose'nt exist!", Toast.LENGTH_SHORT).show();
                 }
             }
@@ -192,19 +219,29 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
     }
-/*
-####################################################################################################
- */
+
+    //Email Validation
+    private boolean isValidEmail(CharSequence email) {
+        return (!TextUtils.isEmpty(email) && Patterns.EMAIL_ADDRESS.matcher(email).matches());
+    }
+
+    /*
+    ####################################################################################################
+     */
     //create a unique email substring and use it as an ID for each user which will also be easy to access about a particular user.
-    private String uniqueID(String email){
-        return email.substring(0, email.lastIndexOf("@"));
+    private String uniqueID(String email) {
+        if (email == null) {
+            return "";
+        } else {
+            return email.substring(0, email.lastIndexOf("@"));
+        }
     }
 /*
 ####################################################################################################
  */
 
     //provide password encryption, do encryption to the password input and then compare it with database.
-    private static String MD5hash(String password){
+    private static String MD5hash(String password) {
         try {
             // Static getInstance method is called with hashing MD5
             MessageDigest md = MessageDigest.getInstance("MD5");

@@ -5,6 +5,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -164,20 +165,17 @@ public class SignUpActivity extends AppCompatActivity {
                             String name = user.getDisplayName();
                             String email = user.getEmail();
 
-                            if (!user.isEmailVerified()){
-                                googleUser = new GoogleUser(name, email, "NO"); // Making a new object
-                                updateGoogleDatabase(user);
+                            googleUser = new GoogleUser(name, email); // Making a new object
+                            updateGoogleDatabase(user);
 
-                                Intent intent = new Intent(getApplicationContext(), VerifyEmail.class);
-                                startActivity(intent);
-                            }else {
-                                googleUser = new GoogleUser(name, email, "YES"); // Making a new object
-                                updateGoogleDatabase(user);
-                            }
+                            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                            startActivity(intent);
 
-                            Intent in = new Intent(getApplicationContext(), MainActivity.class);
-                            in.putExtra("name", name);
-                            in.putExtra("email", email);
+
+                            SharedPreferences.Editor editor = getSharedPreferences("Details", MODE_PRIVATE).edit();
+                            editor.putString("name", name);
+                            editor.putString("email", email);
+                            editor.apply();
                             finish();
                         } else {
                             Toast.makeText(SignUpActivity.this, "Failed to SignIn", Toast.LENGTH_SHORT).show();
@@ -212,23 +210,22 @@ public class SignUpActivity extends AppCompatActivity {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if (task.isSuccessful()) {
+                    //SignIn Success
                     user = mAuth.getCurrentUser();
+                    emailUser = new EmailUser(name_of_user, email_of_user, encrypt_password);
+                    emailUsersReference.child(uniqueID(email_of_user)).setValue(emailUser);
+                    updateEmailDatabase(user);
 
-                    if (!user.isEmailVerified()){
-                        sendEmail(user);
-                        emailUser = new EmailUser(name_of_user, email_of_user, encrypt_password, "NO");
-                        emailUsersReference.child(uniqueID(email_of_user)).setValue(emailUser);
-                        updateEmailDatabase(user);
+                    SharedPreferences.Editor editor = getSharedPreferences("Detils", MODE_PRIVATE).edit();
+                    editor.putString("name", name_of_user);
+                    editor.putString("email", email_of_user);
+                    editor.apply();
 
-                        Intent intent = new Intent(getApplicationContext(), VerifyEmail.class);
-                        startActivity(intent);
-                    }else {
-                        emailUser = new EmailUser(name_of_user, email_of_user, encrypt_password, "YES");
-                        emailUsersReference.child(uniqueID(email_of_user)).setValue(emailUser);
-                        updateEmailDatabase(user);
-                    }
+                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                    startActivity(intent);
 
-                    Intent in = new Intent(SignUpActivity.this, MainActivity.class);
+
+                    Intent in = new Intent(getApplicationContext(), MainActivity.class);
                     in.putExtra("name", name_of_user);
                     in.putExtra("email", email_of_user);
                     finish();
@@ -296,23 +293,6 @@ public class SignUpActivity extends AppCompatActivity {
         }
     }
 
-    //send email verification
-    private void sendEmail(FirebaseUser user) {
-        //send email
-        user.sendEmailVerification().addOnSuccessListener(new OnSuccessListener<Void>() {
-            @Override
-            public void onSuccess(Void aVoid) {
-                Intent intent = new Intent(getApplicationContext(), VerifyEmail.class);
-                startActivity(intent);
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Toast.makeText(SignUpActivity.this, "Failed to send mail.", Toast.LENGTH_SHORT).show();
-                Log.i("Error to send mail", e.getMessage());
-            }
-        });
-    }
 
     //to redirect it to login page on back pressed.
     @Override

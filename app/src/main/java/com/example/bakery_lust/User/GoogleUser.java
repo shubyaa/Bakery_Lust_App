@@ -4,6 +4,7 @@ public class GoogleUser {
     private String name;
     private String email;
     private String verification;
+    private String status;
     private String phoneNO;
     private String location;
 
@@ -21,11 +22,11 @@ public class GoogleUser {
         this.verification = verification;
     }
 
-    public GoogleUser(String name, String email, String phoneNO, String location) {
+    public GoogleUser(String name, String email, String verification, String status){
         this.name = name;
         this.email = email;
-        this.phoneNO = phoneNO;
-        this.location = location;
+        this.verification = verification;
+        this.status = status;
     }
 
     public String getVerification() {

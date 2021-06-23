@@ -7,6 +7,7 @@ public class EmailUser {
     private String location;
     private String password;
     private String verification;
+    private String status;
 
     public EmailUser() {
     }
@@ -17,19 +18,27 @@ public class EmailUser {
         this.password = password;
     }
 
-    public EmailUser(String name, String email, String password, String verification) {
+    public EmailUser(String name, String email, String password, String status) {
         this.name = name;
         this.email = email;
         this.password = password;
         this.verification = verification;
     }
 
-    public EmailUser(String name, String email, String password,String phoneNO, String location) {
+    public EmailUser(String name, String email, String password, String verification, String status) {
         this.name = name;
         this.email = email;
-        this.phoneNO = phoneNO;
-        this.location = location;
         this.password = password;
+        this.verification = verification;
+        this.status = status;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public String getVerification() {

@@ -7,6 +7,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.media.MediaCodec;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -22,13 +24,18 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 public class MainActivity extends AppCompatActivity {
     TextView name, email;
     Button logout;
 
+    private String LOGOUT = "LOGOUT";
+    private String name1;
+    private String email1;
     private FirebaseAuth mAuth;
+    private FirebaseUser user;
     private FirebaseDatabase database;
     private DatabaseReference googleUsersReference;
     private DatabaseReference emailUsersReference;
@@ -39,11 +46,19 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //Get instances from firebase database
         mAuth = FirebaseAuth.getInstance();
+        user = mAuth.getCurrentUser();
         database = FirebaseDatabase.getInstance();
         googleUsersReference = database.getReference("Google");
         emailUsersReference = database.getReference("Email");
 
+        //Get strings from other activities
+        SharedPreferences preferences = getSharedPreferences("Details", MODE_PRIVATE);
+        name1 = preferences.getString("name", "NONE");
+        email1 = preferences.getString("email", "NONE");
+
+        checkUser();
 
         //adding id to the code from UI
         name = findViewById(R.id.name);
@@ -56,24 +71,23 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 logoutDialog(MainActivity.this);
+                SharedPreferences.Editor editor = getSharedPreferences("Details", MODE_PRIVATE).edit();
+                editor.putString("name", "NONE");
+                editor.putString("email", "NONE");
+                editor.apply();
             }
         });
     }
 
     //get details of the user.
-    private void getDetails(){
-        Intent intent = getIntent();
-        String name1 = intent.getStringExtra("name");
-        String email1 = intent.getStringExtra("email");
-
+    private void getDetails() {
         name.setText(name1);
         email.setText(email1);
-
     }
 
 
     //AlertDialog box for logout
-    private void logoutDialog(Activity activity){
+    private void logoutDialog(Activity activity) {
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
         builder.setMessage("Are you sure?")
                 .setTitle("Logout")
@@ -83,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
                         mAuth.signOut();
                         Intent in = new Intent(activity, LoginActivity.class);
                         startActivity(in);
-                        activity.finish();
+                        finish();
                     }
                 })
                 .setNegativeButton("No", new DialogInterface.OnClickListener() {
@@ -95,7 +109,19 @@ public class MainActivity extends AppCompatActivity {
         AlertDialog alertDialog = builder.create();
         alertDialog.show();
     }
+    //check User
+    private void checkUser() {
+        if (name1.equals("NONE") || email1.equals("NONE")){
+            Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+            startActivity(intent);
+            finish();
+        }
+    }
 
+    @Override
+    public void onBackPressed() {
+        finish();
+    }
 
     @Override
     protected void onStart() {
