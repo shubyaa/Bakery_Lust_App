@@ -73,15 +73,16 @@
         app:layout_constraintBottom_toTopOf="@+id/password"
         app:layout_constraintEnd_toStartOf="@+id/vertical_border2"
         app:layout_constraintStart_toEndOf="@+id/vertical_border1"
-        app:layout_constraintTop_toTopOf="@+id/horizontal_border1"/>
+        app:layout_constraintTop_toTopOf="@+id/horizontal_border1" />
+
     <EditText
         android:id="@+id/password"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_below="@+id/email"
         android:autofillHints="password"
-        android:inputType="textPassword"
         android:hint="Password\n"
+        android:inputType="textPassword"
         android:padding="10sp"
         android:paddingTop="32dp"
         app:layout_constraintBottom_toTopOf="@+id/horizontal_line1"
@@ -171,32 +172,32 @@
         android:text="Don't have an account yet?"
         android:textAlignment="center"
         android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+        app:layout_constraintBottom_toTopOf="@+id/signup"
         app:layout_constraintEnd_toStartOf="@id/vertical_border2"
         app:layout_constraintStart_toEndOf="@id/vertical_border1"
-        app:layout_constraintTop_toBottomOf="@+id/horizontal_line4"
-        app:layout_constraintBottom_toTopOf="@+id/signup"/>
+        app:layout_constraintTop_toBottomOf="@+id/horizontal_line4" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/horizontal_line5"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent=".97"/>
+        app:layout_constraintGuide_percent=".97" />
 
     <Button
         android:id="@+id/signup"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:layout_marginVertical="20sp"
         android:background="@drawable/sign_up_button"
         android:fontFamily="sans-serif"
         android:text="Sign Up"
-        android:textSize="18sp"
-        android:layout_marginVertical="20sp"
         android:textAllCaps="false"
-        app:layout_constraintTop_toBottomOf="@+id/text2"
+        android:textSize="18sp"
         app:layout_constraintBottom_toTopOf="@id/horizontal_line5"
+        app:layout_constraintEnd_toStartOf="@id/vertical_border2"
         app:layout_constraintStart_toEndOf="@id/vertical_border1"
-        app:layout_constraintEnd_toStartOf="@id/vertical_border2"/>
+        app:layout_constraintTop_toBottomOf="@+id/text2" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

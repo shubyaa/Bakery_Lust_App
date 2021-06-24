@@ -47,7 +47,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent=".49" />
+        app:layout_constraintGuide_percent=".46" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/vertical_border1"
@@ -71,9 +71,9 @@
         android:hint="Name\n"
         android:padding="10sp"
         app:layout_constraintBottom_toTopOf="@+id/email"
-        app:layout_constraintStart_toEndOf="@+id/vertical_border1"
         app:layout_constraintEnd_toStartOf="@id/vertical_border2"
-        app:layout_constraintTop_toBottomOf="@+id/horizontal_border1"/>
+        app:layout_constraintStart_toEndOf="@+id/vertical_border1"
+        app:layout_constraintTop_toBottomOf="@+id/horizontal_border1" />
 
     <EditText
         android:id="@+id/email"
@@ -93,8 +93,8 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/email"
         android:autofillHints="password"
-        android:inputType="textPassword"
         android:hint="Password\n"
+        android:inputType="textPassword"
         android:padding="10sp"
         android:paddingTop="32dp"
         app:layout_constraintBottom_toTopOf="@+id/horizontal_line1"
@@ -102,27 +102,13 @@
         app:layout_constraintStart_toEndOf="@+id/vertical_border1"
         app:layout_constraintTop_toBottomOf="@+id/email" />
 
-    <TextView
-        android:id="@+id/forgot_password"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/password"
-        android:clickable="true"
-        android:focusable="true"
-        android:fontFamily="sans-serif"
-        android:padding="3sp"
-        android:text="Forgot password ?"
-        android:textAlignment="center"
-        app:layout_constraintEnd_toStartOf="@+id/vertical_line1"
-        app:layout_constraintStart_toEndOf="@+id/vertical_border1"
-        app:layout_constraintTop_toBottomOf="@+id/horizontal_line1" />
 
     <androidx.constraintlayout.widget.Barrier
         android:id="@+id/barrier1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:barrierDirection="bottom"
-        app:constraint_referenced_ids="forgot_password,password,email" />
+        app:constraint_referenced_ids="password,email" />
 
     <Button
         android:id="@+id/register"
@@ -134,9 +120,9 @@
         android:text="Sign In"
         android:textAllCaps="false"
         android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="@id/horizontal_line3"
         app:layout_constraintBottom_toTopOf="@+id/horizontal_line3"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/vertical_border2"
         app:layout_constraintStart_toEndOf="@+id/vertical_border1"
         app:layout_constraintTop_toBottomOf="@+id/barrier1" />
 
@@ -152,13 +138,13 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginHorizontal="0sp"
-        android:layout_marginTop="80sp"
+        android:layout_marginTop="82sp"
         android:fontFamily="sans-serif"
         android:text="Sign in with google"
-        android:textSize="18sp"
         android:textAlignment="center"
         android:textAllCaps="false"
         android:textColor="@color/black"
+        android:textSize="18sp"
         app:iconSize="20sp"
         app:layout_constraintBottom_toTopOf="@+id/horizontal_line4"
         app:layout_constraintEnd_toStartOf="@id/vertical_border2"
@@ -173,7 +159,6 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         app:layout_constraintGuide_percent=".66" />
-
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

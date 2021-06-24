@@ -13,6 +13,7 @@ import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.airbnb.lottie.LottieAnimationView;
@@ -39,11 +40,9 @@ import java.security.NoSuchAlgorithmException;
 
 public class LoginActivity extends AppCompatActivity {
     private Button login, signup, google;
+    private TextView forgot_password;
     private EditText email, password;
 
-    private String emailFromHome = "";
-    private String status = "";
-    private String LOGIN = "LOGIN";
     private String nameDb;
     private String emailDb;
     private FirebaseAuth mAuth;
@@ -61,9 +60,6 @@ public class LoginActivity extends AppCompatActivity {
 
         onRequest();
 
-        Intent intent = getIntent();
-        emailFromHome = intent.getStringExtra("emailFromDatabase");
-
         mAuth = FirebaseAuth.getInstance();
         user = mAuth.getCurrentUser();
         database = FirebaseDatabase.getInstance();
@@ -75,6 +71,14 @@ public class LoginActivity extends AppCompatActivity {
         google = findViewById(R.id.google);
         email = findViewById(R.id.email);
         password = findViewById(R.id.password);
+        forgot_password = findViewById(R.id.forgot_password);
+
+        forgot_password.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                forgotPassword();
+            }
+        });
 
         login.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -85,7 +89,7 @@ public class LoginActivity extends AppCompatActivity {
                     email.setError("Enter your password.");
                 } else if (password.toString().length() < 6) {
                     email.setError("Enter a password greater than 6 characters");
-                }else {
+                } else {
                     loginViaEmail();
                 }
             }
@@ -142,11 +146,6 @@ public class LoginActivity extends AppCompatActivity {
                 //Check for user in our database without password because it is authenticated by google.
                 Query checkUser = googleUsersReference.orderByChild("email").equalTo(account.getEmail());
 
-                try {
-                    googleUsersReference.child(uniqueID(account.getEmail())).child("status").setValue(LOGIN);
-                } catch (Exception ignored) {
-                }
-
                 checkUser.addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -175,12 +174,10 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-
     //check for existence of a particular user in our database.
     private void loginViaEmail() {
         Query checkUser = emailUsersReference.orderByChild("email").equalTo(email.getText().toString());
 
-        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
 
         checkUser.addValueEventListener(new ValueEventListener() {
             @Override
@@ -200,6 +197,7 @@ public class LoginActivity extends AppCompatActivity {
                             @Override
                             public void onComplete(@NonNull Task<AuthResult> task) {
                                 Log.i("sucess", "Yes");
+                                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                                 startActivity(intent);
                                 finish();
                             }
@@ -265,6 +263,13 @@ public class LoginActivity extends AppCompatActivity {
         catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    //Forgot Password
+    private void forgotPassword() {
+        Intent intent = new Intent(getApplicationContext(), ForgotPasswordActivity.class);
+        startActivity(intent);
+        finish();
     }
 
     @Override
