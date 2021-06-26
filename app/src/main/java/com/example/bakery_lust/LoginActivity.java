@@ -196,7 +196,7 @@ public class LoginActivity extends AppCompatActivity {
                         mAuth.signInWithEmailAndPassword(email.toString(), password.toString()).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                             @Override
                             public void onComplete(@NonNull Task<AuthResult> task) {
-                                Log.i("sucess", "Yes");
+                                Log.i("success", "Yes");
                                 Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                                 startActivity(intent);
                                 finish();

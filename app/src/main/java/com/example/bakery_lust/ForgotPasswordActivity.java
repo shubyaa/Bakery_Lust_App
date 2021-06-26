@@ -13,6 +13,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.airbnb.lottie.LottieAnimationView;
 import com.facebook.login.Login;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -65,6 +66,7 @@ public class ForgotPasswordActivity extends AppCompatActivity {
                 if (TextUtils.isEmpty(email.getText().toString())) {
                     email.setError("enter email");
                 } else {
+
                     checkMailInDatabase();
                 }
             }

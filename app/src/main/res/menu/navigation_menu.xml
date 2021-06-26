@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item android:title="General">
+        <menu>
+            <item
+                android:icon="@drawable/ic_home"
+                android:id="@+id/Home"
+                android:title="Home"
+                app:showAsAction="never" />
+            <item
+                android:icon="@drawable/ic_cart"
+                android:id="@+id/Orders"
+                android:title="Orders"
+                app:showAsAction="never" />
+            <item
+                android:icon="@drawable/ic_settings"
+                android:id="@+id/Settings"
+                android:title="Settings"
+                app:showAsAction="never" />
+
+        </menu>
+    </item>
+
+    <item
+        android:icon="@drawable/ic_exit"
+        android:id="@+id/Exit"
+        android:title="Exit"
+        app:showAsAction="never" />
+
+</menu>
