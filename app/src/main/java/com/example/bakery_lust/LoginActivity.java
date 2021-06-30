@@ -43,8 +43,7 @@ public class LoginActivity extends AppCompatActivity {
     private TextView forgot_password;
     private EditText email, password;
 
-    private String nameDb;
-    private String emailDb;
+    private String nameDb, emailDb, phoneNoDb, addressDb, profile_imageDb;
     private FirebaseAuth mAuth;
     private FirebaseDatabase database;
     private FirebaseUser user;
@@ -152,10 +151,16 @@ public class LoginActivity extends AppCompatActivity {
                         if (snapshot.exists()) {
                             nameDb = snapshot.child(uniqueID(account.getEmail())).child("name").getValue(String.class);
                             emailDb = snapshot.child(uniqueID(account.getEmail())).child("email").getValue(String.class);
+                            phoneNoDb = snapshot.child(uniqueID(account.getEmail())).child("phoneNo").getValue(String.class);
+                            addressDb = snapshot.child(uniqueID(account.getEmail())).child("address").getValue(String.class);
+                            profile_imageDb = snapshot.child(uniqueID(account.getEmail())).child("profile_image").getValue(String.class);
 
                             SharedPreferences.Editor editor = getSharedPreferences("Details", MODE_PRIVATE).edit();
                             editor.putString("name", nameDb);
                             editor.putString("email", emailDb);
+                            editor.putString("phoneNo", phoneNoDb);
+                            editor.putString("address", addressDb);
+                            editor.putString("profile_image", profile_imageDb);
                             editor.apply();
                             finish();
                         }
@@ -188,10 +193,16 @@ public class LoginActivity extends AppCompatActivity {
                     if (passwordFromDb.equals(MD5hash(password.getText().toString()))) {
                         nameDb = snapshot.child(uniqueID(email.getText().toString())).child("name").getValue(String.class);
                         emailDb = snapshot.child(uniqueID(email.getText().toString())).child("email").getValue(String.class);
+                        phoneNoDb = snapshot.child(uniqueID(email.getText().toString())).child("phoneNo").getValue(String.class);
+                        addressDb = snapshot.child(uniqueID(email.getText().toString())).child("address").getValue(String.class);
+                        profile_imageDb = snapshot.child(uniqueID(email.getText().toString())).child("profile_image").getValue(String.class);
 
                         SharedPreferences.Editor editor = getSharedPreferences("Details", MODE_PRIVATE).edit();
                         editor.putString("name", nameDb);
                         editor.putString("email", emailDb);
+                        editor.putString("phoneNo", phoneNoDb);
+                        editor.putString("address", addressDb);
+                        editor.putString("profile_image", profile_imageDb);
                         editor.apply();
                         mAuth.signInWithEmailAndPassword(email.toString(), password.toString()).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                             @Override

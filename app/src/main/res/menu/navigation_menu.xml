@@ -19,6 +19,11 @@
                 android:id="@+id/Settings"
                 android:title="Settings"
                 app:showAsAction="never" />
+            <item
+                android:icon="@drawable/ic_lock"
+                android:id="@+id/logout"
+                android:title="Logout"
+                app:showAsAction="never" />
 
         </menu>
     </item>

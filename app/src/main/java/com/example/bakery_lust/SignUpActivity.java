@@ -31,8 +31,12 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 
 import java.math.BigInteger;
 import java.security.MessageDigest;
@@ -206,32 +210,24 @@ public class SignUpActivity extends AppCompatActivity {
 
         String encrypt_password = MD5hash(password_of_user);
 
-        mAuth.createUserWithEmailAndPassword(email_of_user, password_of_user).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-            @Override
-            public void onComplete(@NonNull Task<AuthResult> task) {
-                if (task.isSuccessful()) {
-                    //SignIn Success
-                    user = mAuth.getCurrentUser();
-                    emailUser = new EmailUser(name_of_user, email_of_user, encrypt_password);
-                    emailUsersReference.child(uniqueID(email_of_user)).setValue(emailUser);
-                    updateEmailDatabase(user);
+        mAuth.createUserWithEmailAndPassword(email_of_user, password_of_user).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                //SignIn Success
+                user = mAuth.getCurrentUser();
+                emailUser = new EmailUser(name_of_user, email_of_user, encrypt_password);
+                emailUsersReference.child(uniqueID(email_of_user)).setValue(emailUser);
+                updateEmailDatabase(user);
 
-                    SharedPreferences.Editor editor = getSharedPreferences("Detils", MODE_PRIVATE).edit();
-                    editor.putString("name", name_of_user);
-                    editor.putString("email", email_of_user);
-                    editor.apply();
+                SharedPreferences.Editor editor = getSharedPreferences("Details", MODE_PRIVATE).edit();
+                editor.putString("name", name_of_user);
+                editor.putString("email", email_of_user);
+                editor.apply();
 
-                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                    startActivity(intent);
-
-
-                    Intent in = new Intent(getApplicationContext(), MainActivity.class);
-                    in.putExtra("name", name_of_user);
-                    in.putExtra("email", email_of_user);
-                    finish();
-                } else {
-                    Toast.makeText(SignUpActivity.this, "Failed to register", Toast.LENGTH_SHORT).show();
-                }
+                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                startActivity(intent);
+                finish();
+            } else {
+                Toast.makeText(SignUpActivity.this, "Failed to register", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -248,14 +244,78 @@ public class SignUpActivity extends AppCompatActivity {
 
     //update Google Database
     private void updateGoogleDatabase(FirebaseUser firebaseUser) {
-        Id = uniqueID(firebaseUser.getEmail());
-        googleUsersReference.child(Id).setValue(googleUser);
+
+        Query checkUser = emailUsersReference.orderByChild("email").equalTo(email.getText().toString());
+        checkUser.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()){
+                    Toast.makeText(SignUpActivity.this, "User Already exists", Toast.LENGTH_SHORT).show();
+                }else {
+                    Query checkUser = googleUsersReference.orderByChild("email").equalTo(email.getText().toString());
+                    checkUser.addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            if (snapshot.exists()){
+                                Toast.makeText(SignUpActivity.this, "User Already exists", Toast.LENGTH_SHORT).show();
+                            }else {
+                                Id = uniqueID(firebaseUser.getEmail());
+                                googleUsersReference.child(Id).setValue(googleUser);
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+
+
     }
 
     //update Email Database
     private void updateEmailDatabase(FirebaseUser firebaseUser) {
-        Id = uniqueID(firebaseUser.getEmail());
-        emailUsersReference.child(Id).setValue(emailUser);
+
+        Query checkUser = emailUsersReference.orderByChild("email").equalTo(email.getText().toString());
+        checkUser.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()){
+                    Toast.makeText(SignUpActivity.this, "User Already exists", Toast.LENGTH_SHORT).show();
+                }else {
+                    Query checkUser = googleUsersReference.orderByChild("email").equalTo(email.getText().toString());
+                    checkUser.addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            if (snapshot.exists()){
+                                Toast.makeText(SignUpActivity.this, "User Already exists", Toast.LENGTH_SHORT).show();
+                            }else {
+                                Id = uniqueID(firebaseUser.getEmail());
+                                emailUsersReference.child(Id).setValue(emailUser);
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
     }
 /*
 ####################################################################################################

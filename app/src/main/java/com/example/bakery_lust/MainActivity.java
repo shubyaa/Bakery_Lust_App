@@ -19,18 +19,23 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
-    TextView name, email;
-    Button logout;
+    private TextView name, email;
+    private ImageView profileImage;
 
     private DrawerLayout drawerLayout;
     private ActionBarDrawerToggle drawerToggle;
@@ -42,9 +47,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private FragmentManager fragmentManager;
     private FragmentTransaction fragmentTransaction;
 
-    private String LOGOUT = "LOGOUT";
-    private String name1;
-    private String email1;
+    private String name1, email1, phoneNo1, address1, profile_image1;
     private FirebaseAuth mAuth;
     private FirebaseUser user;
     private FirebaseDatabase database;
@@ -69,6 +72,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         SharedPreferences preferences = getSharedPreferences("Details", MODE_PRIVATE);
         name1 = preferences.getString("name", "NONE");
         email1 = preferences.getString("email", "NONE");
+        phoneNo1 = preferences.getString("phoneNo", "NONE");
+        address1 = preferences.getString("address", "NONE");
+        profile_image1 = preferences.getString("profile_image", "NONE");
 
         //adding id to the code from UI
 
@@ -76,9 +82,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         drawerLayout = findViewById(R.id.drawer_layout);
         navigationView = findViewById(R.id.nav_bar);
 
+        //Ids from drawer
         headerView = navigationView.getHeaderView(0);
         name = headerView.findViewById(R.id.name_drawer);
         email = headerView.findViewById(R.id.email_drawer);
+        profileImage = headerView.findViewById(R.id.profile_image);
+
+        profileImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(), ProfileActivity.class);
+                startActivity(intent);
+            }
+        });
 
         checkUser();
 
@@ -111,8 +127,41 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             startActivity(intent);
             finish();
         }else {
-            name.setText(name1);
-            email.setText(email1);
+            Query checkUser = emailUsersReference.orderByChild("email").equalTo(email1);
+            checkUser.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (snapshot.exists()){
+                        String nameDb = snapshot.child(uniqueID(email1)).child("name").getValue(String.class);
+                        String emailDb = snapshot.child(uniqueID(email1)).child("email").getValue(String.class);
+
+                        name.setText(nameDb);
+                        email.setText(emailDb);
+                    }else {
+                        Query checkUser = googleUsersReference.orderByChild("email").equalTo(email1);
+                        checkUser.addValueEventListener(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                if (snapshot.exists()) {
+                                    String nameDb = snapshot.child(uniqueID(email1)).child("name").getValue(String.class);
+                                    String emailDb = snapshot.child(uniqueID(email1)).child("email").getValue(String.class);
+
+                                    name.setText(nameDb);
+                                    email.setText(emailDb);
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {
+                            }
+                        });
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                }
+            });
         }
     }
 
@@ -129,12 +178,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         drawerLayout.closeDrawer(GravityCompat.START);
         if (item.getItemId() == R.id.Home){
+
             fragmentManager = getSupportFragmentManager();
             fragmentTransaction = fragmentManager.beginTransaction();
             fragmentTransaction.replace(R.id.fragment, new HomeFragment());
             fragmentTransaction.commit();
 
         }else if (item.getItemId() == R.id.Orders){
+
             fragmentManager = getSupportFragmentManager();
             fragmentTransaction = fragmentManager.beginTransaction();
             fragmentTransaction.replace(R.id.fragment, new OrderFragment());
@@ -142,18 +193,32 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         }else if (item.getItemId() == R.id.Settings){
 
-        }else if (item.getItemId() == R.id.Exit){
+        }else if (item.getItemId() == R.id.logout){
+            SharedPreferences.Editor preferences = getSharedPreferences("Details", MODE_PRIVATE).edit();
+            preferences.putString("name", "NONE");
+            preferences.putString("email", "NONE");
+            preferences.apply();
+            finish();
 
+        }else if (item.getItemId() == R.id.Exit){
+            finish();
         }
         return true;
     }
 
 
-    public String sendNameToFragment(){
-        return name1;
+/*
+####################################################################################################
+ */
+    //create a unique email substring and use it as an ID for each user which will also be easy to access about a particular user.
+    private String uniqueID(String email) {
+        if (email == null) {
+            return "";
+        } else {
+            return email.substring(0, email.lastIndexOf("@"));
+        }
     }
-
-    public String sendEmailTOFragment(){
-        return email1;
-    }
+/*
+####################################################################################################
+ */
 }
