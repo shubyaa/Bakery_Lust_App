@@ -5,12 +5,14 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.ProgressDialog;
+import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.webkit.MimeTypeMap;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -18,6 +20,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
@@ -46,7 +49,6 @@ public class ProfileActivity extends AppCompatActivity {
     private TextView name_view, phoneNo_view, address_view, email_view, edit_profile;
     private RelativeLayout view_profile_segment, edit_profile_segment;
 
-    private FirebaseAuth mAuth;
     private FirebaseDatabase database;
     private DatabaseReference emailUsersReference;
     private DatabaseReference googleUsersReference;
@@ -62,7 +64,6 @@ public class ProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
-        mAuth = FirebaseAuth.getInstance();
         database = FirebaseDatabase.getInstance();
         storage = FirebaseStorage.getInstance();
         profile_image_reference = storage.getReference("profile_images");
@@ -137,7 +138,6 @@ public class ProfileActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 1 && resultCode == RESULT_OK && data != null && data.getData() != null) {
             imageUri = data.getData();
-            profile_image.setImageURI(imageUri);
             uploadProfileImage();
         }
     }
@@ -148,7 +148,7 @@ public class ProfileActivity extends AppCompatActivity {
         loading.show();
 
         // Create a reference
-        StorageReference profile = profile_image_reference.child(uniqueID(email) + ".jpg");
+        StorageReference profile = profile_image_reference.child(uniqueID(email) + "." + getFileExtension(imageUri));
         profile.putFile(imageUri)
                 .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                     @Override
@@ -157,6 +157,7 @@ public class ProfileActivity extends AppCompatActivity {
                             @Override
                             public void onSuccess(Uri uri) {
                                 myProfileUri = uri.toString();
+                                profile_image.setImageURI(imageUri);
                             }
                         });
                         loading.dismiss();
@@ -185,6 +186,13 @@ public class ProfileActivity extends AppCompatActivity {
         SharedPreferences preferences = getSharedPreferences("Details", MODE_PRIVATE);
         name = preferences.getString("name", "NONE");
         email = preferences.getString("email", "NONE");
+    }
+
+    //For File extension
+    private String getFileExtension(Uri uri) {
+        ContentResolver contentResolver = getContentResolver();
+        MimeTypeMap mimeTypeMap = MimeTypeMap.getSingleton();
+        return mimeTypeMap.getExtensionFromMimeType(contentResolver.getType(uri));
     }
 
     //Update details of the user
@@ -224,7 +232,7 @@ public class ProfileActivity extends AppCompatActivity {
                     editor.apply();
                     progressDialog.dismiss();
                 } else {
-                     googleUsersReference.child(uniqueID(email)).updateChildren(map);
+                    googleUsersReference.child(uniqueID(email)).updateChildren(map);
 
                     SharedPreferences.Editor editor = getSharedPreferences("Details", MODE_PRIVATE).edit();
                     if (!(newName.equals(""))) {
@@ -277,12 +285,12 @@ public class ProfileActivity extends AppCompatActivity {
                         phoneNo_view.setText(phoneNo);
 
                         //Check whether user has profile image or not
-                        if (snapshot.hasChild("profile_image")) {
-                            String image = snapshot.child("profile_image").getValue(String.class);
-                            if (image != null) {
-                                Log.i("image", image);
-                                Picasso.get().load(image).into(profile_image);
-                            }
+                        String image = snapshot.child(uniqueID(email)).child("profile_image").getValue(String.class);
+                        if (image==null){
+                            profile_image.setImageResource(R.drawable.ic_user);
+                        }else {
+                            Glide.with(ProfileActivity.this).load(image).into(profile_image);
+                            //Picasso.get().load(image).into(profileImage);
                         }
                     } else {
                         Query checkProfile = googleUsersReference.orderByChild("email").equalTo(email);
@@ -302,13 +310,17 @@ public class ProfileActivity extends AppCompatActivity {
                                     phoneNo_view.setText(phoneNo);
 
                                     //Check whether user has profile image or not
-                                    if (snapshot.hasChild("profile_image")) {
-                                        String image = snapshot.child("profile_image").getValue(String.class);
-                                        if (image != null) {
-                                            Picasso.get().load(image).into(profile_image);
-                                        }
-
+                                    String image = snapshot.child(uniqueID(email)).child("profile_image").getValue(String.class);
+                                    if (image==null){
+                                        profile_image.setImageResource(R.drawable.ic_user);
+                                    }else {
+                                        Glide.with(ProfileActivity.this).load(image).into(profile_image);
+                                        //Picasso.get().load(image).into(profileImage);
                                     }
+                                    Toast.makeText(ProfileActivity.this, "Getting Image", Toast.LENGTH_SHORT).show();
+                                    Glide.with(getApplicationContext()).load(image).into(profile_image);
+                                    //Picasso.get().load(image).into(profile_image);
+
                                 }
                             }
 

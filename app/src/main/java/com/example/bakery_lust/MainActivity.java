@@ -14,6 +14,7 @@ import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
@@ -21,7 +22,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -31,11 +34,14 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+import com.squareup.picasso.Picasso;
 
 
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     private TextView name, email;
     private ImageView profileImage;
+
+    private String image = "NONE";
 
     private DrawerLayout drawerLayout;
     private ActionBarDrawerToggle drawerToggle;
@@ -77,7 +83,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         profile_image1 = preferences.getString("profile_image", "NONE");
 
         //adding id to the code from UI
-
         toolbar = findViewById(R.id.toolbar);
         drawerLayout = findViewById(R.id.drawer_layout);
         navigationView = findViewById(R.id.nav_bar);
@@ -97,11 +102,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         });
 
         checkUser();
+        Log.i("imageUri", image);
 
         navigationView.setNavigationItemSelectedListener(this);
         setSupportActionBar(toolbar);
         toolbar.setTitle("Home");
-        Log.i("title", toolbar.getTitle().toString());
 
         drawerToggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.open, R.string.close);
         drawerLayout.addDrawerListener(drawerToggle);
@@ -119,25 +124,32 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 //???????????????????????????????????????????????????????????????????????????????????????????????????
 
 
-
     //check User
     private void checkUser() {
-        if (name1.equals("NONE") || email1.equals("NONE")){
+        if (name1.equals("NONE") || email1.equals("NONE")) {
             Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
             startActivity(intent);
             finish();
-        }else {
+        } else {
             Query checkUser = emailUsersReference.orderByChild("email").equalTo(email1);
             checkUser.addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    if (snapshot.exists()){
+                    if (snapshot.exists()) {
                         String nameDb = snapshot.child(uniqueID(email1)).child("name").getValue(String.class);
                         String emailDb = snapshot.child(uniqueID(email1)).child("email").getValue(String.class);
 
+                        image = snapshot.child(uniqueID(email1)).child("profile_image").getValue(String.class);
+                        if (image==null){
+                            profileImage.setImageResource(R.drawable.ic_user);
+                        }else {
+                            Glide.with(MainActivity.this).load(image).into(profileImage);
+                            //Picasso.get().load(image).into(profileImage);
+                        }
+
                         name.setText(nameDb);
                         email.setText(emailDb);
-                    }else {
+                    } else {
                         Query checkUser = googleUsersReference.orderByChild("email").equalTo(email1);
                         checkUser.addValueEventListener(new ValueEventListener() {
                             @Override
@@ -145,6 +157,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                 if (snapshot.exists()) {
                                     String nameDb = snapshot.child(uniqueID(email1)).child("name").getValue(String.class);
                                     String emailDb = snapshot.child(uniqueID(email1)).child("email").getValue(String.class);
+
+                                    image = snapshot.child(uniqueID(email1)).child("profile_image").getValue(String.class);
+                                    if (image==null){
+                                        profileImage.setImageResource(R.drawable.ic_user);
+                                    }else {
+                                        Glide.with(MainActivity.this).load(image).into(profileImage);
+                                        //Picasso.get().load(image).into(profileImage);
+                                    }
 
                                     name.setText(nameDb);
                                     email.setText(emailDb);
@@ -177,39 +197,39 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         drawerLayout.closeDrawer(GravityCompat.START);
-        if (item.getItemId() == R.id.Home){
+        if (item.getItemId() == R.id.Home) {
 
             fragmentManager = getSupportFragmentManager();
             fragmentTransaction = fragmentManager.beginTransaction();
             fragmentTransaction.replace(R.id.fragment, new HomeFragment());
             fragmentTransaction.commit();
 
-        }else if (item.getItemId() == R.id.Orders){
+        } else if (item.getItemId() == R.id.Orders) {
 
             fragmentManager = getSupportFragmentManager();
             fragmentTransaction = fragmentManager.beginTransaction();
             fragmentTransaction.replace(R.id.fragment, new OrderFragment());
             fragmentTransaction.commit();
 
-        }else if (item.getItemId() == R.id.Settings){
+        } else if (item.getItemId() == R.id.Settings) {
 
-        }else if (item.getItemId() == R.id.logout){
+        } else if (item.getItemId() == R.id.logout) {
             SharedPreferences.Editor preferences = getSharedPreferences("Details", MODE_PRIVATE).edit();
             preferences.putString("name", "NONE");
             preferences.putString("email", "NONE");
             preferences.apply();
             finish();
 
-        }else if (item.getItemId() == R.id.Exit){
+        } else if (item.getItemId() == R.id.Exit) {
             finish();
         }
         return true;
     }
 
 
-/*
-####################################################################################################
- */
+    /*
+    ####################################################################################################
+     */
     //create a unique email substring and use it as an ID for each user which will also be easy to access about a particular user.
     private String uniqueID(String email) {
         if (email == null) {
