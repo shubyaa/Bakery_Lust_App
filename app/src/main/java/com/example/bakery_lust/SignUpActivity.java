@@ -249,15 +249,15 @@ public class SignUpActivity extends AppCompatActivity {
         checkUser.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.exists()){
-                }else {
+                if (!(snapshot.exists())) {
+
                     Query checkUser = googleUsersReference.orderByChild("email").equalTo(email.getText().toString());
                     checkUser.addValueEventListener(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot snapshot) {
-                            if (snapshot.exists()){
-                                Toast.makeText(SignUpActivity.this, "User Already exists", Toast.LENGTH_SHORT).show();
-                            }else {
+                            if (snapshot.exists()) {
+                                Toast.makeText(SignUpActivity.this, "User Already exists, Please Log In", Toast.LENGTH_SHORT).show();
+                            } else {
                                 Id = uniqueID(firebaseUser.getEmail());
                                 googleUsersReference.child(Id).setValue(googleUser);
                             }
@@ -268,6 +268,7 @@ public class SignUpActivity extends AppCompatActivity {
 
                         }
                     });
+
                 }
             }
 
@@ -287,15 +288,14 @@ public class SignUpActivity extends AppCompatActivity {
         checkUser.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.exists()){
-                }else {
+                if (!(snapshot.exists())) {
                     Query checkUser = googleUsersReference.orderByChild("email").equalTo(email.getText().toString());
                     checkUser.addValueEventListener(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot snapshot) {
-                            if (snapshot.exists()){
-                                Toast.makeText(SignUpActivity.this, "User Already exists", Toast.LENGTH_SHORT).show();
-                            }else {
+                            if (snapshot.exists()) {
+                                Toast.makeText(SignUpActivity.this, "User Already exists, Please Log In", Toast.LENGTH_SHORT).show();
+                            } else {
                                 Id = uniqueID(firebaseUser.getEmail());
                                 emailUsersReference.child(Id).setValue(emailUser);
                             }
