@@ -11,6 +11,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.bakery_lust.Interfaces.RecyclerViewOnClickListener;
 import com.example.bakery_lust.Model.ParentModel;
 import com.example.bakery_lust.R;
 import com.squareup.picasso.Picasso;
@@ -21,6 +22,8 @@ public class ParentAdapter extends RecyclerView.Adapter<ParentAdapter.MyViewHold
     public RecyclerView.RecycledViewPool viewPool;
     public ArrayList<ParentModel> parentModelArrayList;
     public Context context;
+    public RecyclerViewOnClickListener recyclerViewOnClickListener;
+
 
     public static class MyViewHolder extends RecyclerView.ViewHolder {
         public TextView parentName;
@@ -29,19 +32,33 @@ public class ParentAdapter extends RecyclerView.Adapter<ParentAdapter.MyViewHold
         public TextView rating;
         public ImageView imageView;
 
+
         public MyViewHolder(@NonNull View itemView) {
             super(itemView);
             description = itemView.findViewById(R.id.description);
             rating = itemView.findViewById(R.id.rating);
-            cost= itemView.findViewById(R.id.cost);
+            cost = itemView.findViewById(R.id.cost);
             parentName = itemView.findViewById(R.id.child_name);
             imageView = itemView.findViewById(R.id.child_image);
+
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    ParentAdapter adapter = new ParentAdapter();
+                    adapter.recyclerViewOnClickListener.onItemClick(getAdapterPosition());
+                }
+            });
         }
     }
 
-    public ParentAdapter(ArrayList<ParentModel> parentModelArrayList, Context context) {
+    private ParentAdapter() {
+
+    }
+
+    public ParentAdapter(ArrayList<ParentModel> parentModelArrayList, Context context, RecyclerViewOnClickListener recyclerViewOnClickListener) {
         this.parentModelArrayList = parentModelArrayList;
         this.context = context;
+        this.recyclerViewOnClickListener = recyclerViewOnClickListener;
 
         viewPool = new RecyclerView.RecycledViewPool();
     }
@@ -67,10 +84,10 @@ public class ParentAdapter extends RecyclerView.Adapter<ParentAdapter.MyViewHold
 
     }
 
-    private String des(String string){
-        if (string.length() > 17){
-            return string.substring(0, 17)+"...";
-        }else {
+    private String des(String string) {
+        if (string.length() > 17) {
+            return string.substring(0, 17) + "...";
+        } else {
             return string;
         }
     }

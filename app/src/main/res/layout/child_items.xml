@@ -23,7 +23,8 @@
             android:layout_height="match_parent"
             android:orientation="horizontal">
 
-            <ImageView
+            <com.makeramen.roundedimageview.RoundedImageView
+                app:riv_corner_radius="10dp"
                 android:id="@+id/child_image"
                 android:layout_width="75dp"
                 android:layout_height="75dp"

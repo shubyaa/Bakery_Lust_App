@@ -8,18 +8,28 @@ public class ParentModel {
     private long cost;
     private String description;
     private String rating;
+    private String id;
 
 
     public ParentModel() {
 
     }
 
-    public ParentModel(String categoryName, String categoryId, long cost, String description, String rating) {
+    public ParentModel(String categoryName, String categoryId, long cost, String description, String rating, String id) {
         this.categoryName = categoryName;
         this.categoryId = categoryId;
         this.cost = cost;
         this.description = description;
         this.rating = rating;
+        this.id = id;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getCategoryName() {
